@@ -168,9 +168,10 @@ const RealEstateProjection: React.FC<RealEstateProjectionProps> = ({
     const monthlyPayment = financingNeeded > 0 ? calculateMonthlyPayment(financingNeeded, inputs.interestRate, inputs.loanDuration) : 0;
     const annualCharges = inputs.propertyTax + inputs.insurance + inputs.cfe + inputs.pnoInsurance + inputs.accountant + inputs.managementFees;
     const vacancyFactor = 1 - (inputs.vacancy / 52);
-    const netCashflow = (inputs.monthlyRent * 12 * vacancyFactor) - (inputs.monthlyCharges * 12) - (monthlyPayment * 12) - annualCharges;
+    const netOperatingIncome = (inputs.monthlyRent * 12 * vacancyFactor) - (inputs.monthlyCharges * 12) - annualCharges;
+    const netCashflow = netOperatingIncome - (monthlyPayment * 12);
     const grossYield = (inputs.monthlyRent * 12) / inputs.price * 100;
-    const netYield = netCashflow / inputs.price * 100;
+    const netYield = netOperatingIncome / inputs.price * 100;
 
     return {
       meta: {
@@ -236,9 +237,10 @@ const RealEstateProjection: React.FC<RealEstateProjectionProps> = ({
   const monthlyPayment = financingNeeded > 0 ? calculateMonthlyPayment(financingNeeded, inputs.interestRate, inputs.loanDuration) : 0;
   const annualCharges = inputs.propertyTax + inputs.insurance + inputs.cfe + inputs.pnoInsurance + inputs.accountant + inputs.managementFees;
   const vacancyFactor = 1 - (inputs.vacancy / 52);
-  const netCashflow = (inputs.monthlyRent * 12 * vacancyFactor) - (inputs.monthlyCharges * 12) - (monthlyPayment * 12) - annualCharges;
+  const netOperatingIncome = (inputs.monthlyRent * 12 * vacancyFactor) - (inputs.monthlyCharges * 12) - annualCharges;
+  const netCashflow = netOperatingIncome - (monthlyPayment * 12);
   const grossYield = inputs.price > 0 ? (inputs.monthlyRent * 12) / inputs.price * 100 : 0;
-  const netYield = inputs.price > 0 ? netCashflow / inputs.price * 100 : 0;
+  const netYield = inputs.price > 0 ? netOperatingIncome / inputs.price * 100 : 0;
 
   let decision = 'NOGO';
   let decisionColor = 'text-red-600 bg-red-50 border-red-200';
