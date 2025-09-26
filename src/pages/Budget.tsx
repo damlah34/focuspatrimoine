@@ -3,7 +3,7 @@ import { User, AlertCircle } from 'lucide-react';
 import { isAuthenticated } from '../utils/auth';
 
 interface BudgetProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, params?: any) => void;
 }
 
 const Budget: React.FC<BudgetProps> = ({ onNavigate }) => {
@@ -17,7 +17,7 @@ const Budget: React.FC<BudgetProps> = ({ onNavigate }) => {
             Vous devez être connecté pour accéder à cette fonctionnalité.
           </p>
           <button
-            onClick={() => onNavigate('login')}
+            onClick={() => onNavigate('login', { page: 'budget' })}
             className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
           >
             Se connecter

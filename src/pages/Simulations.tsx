@@ -16,7 +16,7 @@ const Simulations: React.FC<SimulationsProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      onNavigate('login');
+      onNavigate('login', { page: 'simulations' });
       return;
     }
     
@@ -82,7 +82,7 @@ const Simulations: React.FC<SimulationsProps> = ({ onNavigate }) => {
             Vous devez être connecté pour accéder à vos simulations.
           </p>
           <button
-            onClick={() => onNavigate('login')}
+            onClick={() => onNavigate('login', { page: 'simulations' })}
             className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
           >
             Se connecter

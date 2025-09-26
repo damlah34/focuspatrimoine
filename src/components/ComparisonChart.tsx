@@ -24,11 +24,23 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ data, customRate, liv
       return chartHeight - ((value - minValue + padding) / (range + 2 * padding)) * chartHeight;
     };
 
+    const denominator = Math.max(1, data.length - 1);
+
     const getX = (index: number) => {
-      return (index / (data.length - 1)) * chartWidth;
+      if (data.length === 1) {
+        return chartWidth / 2;
+      }
+
+      return (index / denominator) * chartWidth;
     };
 
     const createPath = (values: number[]) => {
+      if (values.length === 1) {
+        const x = chartWidth / 2;
+        const y = getY(values[0]);
+        return `M ${x} ${y} L ${x} ${y}`;
+      }
+
       return values
         .map((value, index) => `${index === 0 ? 'M' : 'L'} ${getX(index)} ${getY(value)}`)
         .join(' ');
