@@ -48,6 +48,7 @@ const RealEstateProjection: React.FC<RealEstateProjectionProps> = ({
   const [cityQuery, setCityQuery] = useState('');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [title, setTitle] = useState(simulationTitle || '');
+  const [formError, setFormError] = useState('');
   
   // Loading states
   const [loadingSimulation, setLoadingSimulation] = useState(false);
@@ -124,10 +125,12 @@ const RealEstateProjection: React.FC<RealEstateProjectionProps> = ({
 
   const handleCalculate = () => {
     if (inputs.monthlyRent <= 0) {
-      alert('Veuillez renseigner le loyer mensuel');
+      setFormError('Veuillez renseigner un loyer mensuel supérieur à zéro.');
       return;
     }
-    
+
+    setFormError('');
+
     const projectionData = buildRealEstateProjection(inputs);
     setProjection(projectionData);
     setShowResults(true);
@@ -746,6 +749,14 @@ const RealEstateProjection: React.FC<RealEstateProjectionProps> = ({
                 <Calculator className="w-5 h-5 mr-2" />
                 Calculer la projection
               </button>
+              {formError && (
+                <div
+                  role="alert"
+                  className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {formError}
+                </div>
+              )}
             </div>
           </div>
         </div>

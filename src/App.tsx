@@ -31,9 +31,23 @@ const App: React.FC = () => {
   }, []);
 
   const handleNavigation = (page: string, params?: any) => {
+    if (page === 'login') {
+      if (params?.page) {
+        window.__pageParams = {
+          page: params.page,
+          params: params.params
+        };
+      } else {
+        window.__pageParams = undefined;
+      }
+
+      setShowLogin(true);
+      return;
+    }
+
     // Check if page requires authentication
     const protectedPages = ['simulations', 'budget'];
-    
+
     if (protectedPages.includes(page) && !isAuthenticated()) {
       // Store the desired destination
       window.__pageParams = { page, params };
