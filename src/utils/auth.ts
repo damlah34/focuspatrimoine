@@ -1,3 +1,6 @@
+import type { Session } from '@supabase/supabase-js';
+import { getSupabaseClient } from './supabaseClient';
+
 export const AUTH_TOKEN_KEY = 'focus_patrimoine_token';
 
 export interface LoginCredentials {
@@ -5,59 +8,105 @@ export interface LoginCredentials {
   password: string;
 }
 
+const hasWindow = typeof window !== 'undefined';
+
 export const getToken = (): string | null => {
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  if (!hasWindow) {
+    return null;
+  }
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
 };
 
 export const setToken = (token: string): void => {
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
+  if (!hasWindow) {
+    return;
+  }
+  window.localStorage.setItem(AUTH_TOKEN_KEY, token);
 };
 
 export const removeToken = (): void => {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  if (!hasWindow) {
+    return;
+  }
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
 };
+
+const syncTokenFromSession = (session: Session | null): void => {
+  if (session?.access_token) {
+    setToken(session.access_token);
+  } else {
+    removeToken();
+  }
+};
+
+let supabase: ReturnType<typeof getSupabaseClient> | null = null;
+
+try {
+  supabase = getSupabaseClient();
+} catch (error) {
+  console.warn(error instanceof Error ? error.message : error);
+}
+
+if (supabase && hasWindow) {
+  void supabase.auth.getSession().then(({ data }) => {
+    syncTokenFromSession(data.session ?? null);
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    syncTokenFromSession(session);
+  });
+}
 
 export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  return !!token;
+  return !!getToken();
 };
 
-// Mock authentication - in real app this would call your API
 export const login = async (credentials: LoginCredentials): Promise<{ token: string; user: any }> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Mock successful login
-  if (credentials.email && credentials.password) {
-    const token = `mock_token_${Date.now()}`;
-    const user = { id: '1', email: credentials.email };
-    return { token, user };
+  if (!supabase) {
+    throw new Error('Supabase n\'est pas configuré. Vérifiez vos variables d\'environnement.');
   }
-  
-  throw new Error('Invalid credentials');
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
+  });
+
+  if (error || !data.session || !data.user) {
+    throw new Error(error?.message ?? 'Impossible de se connecter avec ces identifiants.');
+  }
+
+  const token = data.session.access_token;
+  setToken(token);
+
+  return { token, user: data.user };
 };
 
-export const logout = (): void => {
+export const logout = async (): Promise<void> => {
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+
   removeToken();
-  window.location.reload();
+  if (hasWindow) {
+    window.location.reload();
+  }
 };
 
 // Authenticated fetch wrapper
 export const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = getToken();
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
-  };
+  } as HeadersInit;
 
   const response = await fetch(url, { ...options, headers });
-  
+
   if (response.status === 401) {
-    removeToken();
-    window.location.reload();
+    await logout();
   }
-  
+
   return response;
 };

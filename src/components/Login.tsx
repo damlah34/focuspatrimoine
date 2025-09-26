@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Lock, AlertCircle, Loader2 } from 'lucide-react';
-import { login, setToken, LoginCredentials } from '../utils/auth';
+import { login, LoginCredentials } from '../utils/auth';
 
 interface LoginProps {
   onSuccess: () => void;
@@ -20,11 +20,11 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
     setError('');
 
     try {
-      const { token } = await login(credentials);
-      setToken(token);
+      await login(credentials);
       onSuccess();
     } catch (err) {
-      setError('Email ou mot de passe incorrect');
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue lors de la connexion';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess }) => {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Utilisez n'importe quel email et mot de passe pour tester l'application</p>
+          <p>Les accès sont gérés par Supabase. Veuillez utiliser un compte existant ou en créer un via l'administration Supabase.</p>
         </div>
       </div>
     </div>
